@@ -37,6 +37,7 @@ function load_mailbox(mailbox, sent_success = false) {
   success_message = document.querySelector("#success_message");
   success_message.style.display = 'none';
   // Show the mailbox and hide other views
+  clear("emails-view");
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
   // If mail was sent succcesfully display success message
@@ -47,6 +48,65 @@ function load_mailbox(mailbox, sent_success = false) {
   }
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+  // Get mails for the current mailbox
+  fetch(`emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+        if (emails.length == 0)
+        {
+            document.querySelector('#emails-view').innerHTML += "<h4>This box is empty</h4>"
+            return
+        }
+        mail_container = document.querySelector("#emails-view");
+        for(let i = 0; i < emails.length; i++)
+        {
+            mail = emails[i];
+
+            mail_div = document.createElement("div");
+            mail_div.className = "email";
+
+            mail_sender = document.createElement("div");
+            mail_sender.className = "email_sender";
+
+            mail_desc = document.createElement("div");
+            mail_desc.className = "email_content_inbox";
+
+            sender = get_sender(mail.sender);
+
+            if (mailbox == "sent")
+            {
+                sender = "To:" + sender;
+            }
+
+            description = `<strong>${mail.subject}</strong> ${mail.body}`;
+
+            mail_sender.append(sender);
+            mail_desc.innerHTML = description;
+
+            mail_div.append(mail_sender, mail_desc);
+
+            mail_container.append(mail_div);
+        }
+  })
+}
+
+function get_recipients(sender_mail) {
+    sender = "";
+    i = 0;
+    while (sender_mail[i] != "@"){
+        sender += sender_mail[i];
+        i += 1;
+    }
+    return sender
+}
+
+function clear(id){
+    // Removes all childs of tag with id == 'id'
+    var div = document.getElementById;
+
+    while(div.firstChild) {
+        div.removeChild(div.firstChild);
+    }
 }
 
 function send_mail() {
@@ -60,7 +120,7 @@ function send_mail() {
         body: JSON.stringify({
             recipients: recipients,
             subject: subject,
-            mail_body: mail_body,
+            body: mail_body,
         })
     })
     // Convert response to json data
