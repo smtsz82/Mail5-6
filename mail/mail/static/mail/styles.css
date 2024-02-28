@@ -18,6 +18,11 @@ textarea {
     height: 40px;
 }
 
+.email:hover {
+    background-color: grey;
+    cursor: pointer;
+}
+
 .email_sender{
     display: flex;
     justify-content: center;

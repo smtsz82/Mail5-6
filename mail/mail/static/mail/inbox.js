@@ -71,6 +71,10 @@ function load_mailbox(mailbox, sent_success = false) {
             mail = emails[i];
 
             mail_div = document.createElement("div");
+            mail_div.dataset.id = mail.id;
+            mail_div.addEventListener("click", function(){
+                show_mail(this.dataset.id)
+            })
             mail_div.className = "email";
 
             mail_sender = document.createElement("div");
@@ -167,4 +171,8 @@ function send_mail() {
             load_mailbox("sent", true);
         }
     });
+}
+
+function show_mail(id){
+    console.log("pokazuje maila")
 }
