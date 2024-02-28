@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 function compose_email() {
-
+  // Hide email view
+  document.querySelector("#email-view").style.display = "none";
   // Hide success message
   success_message = document.querySelector("#success_message");
   success_message.style.display = 'none';
@@ -34,6 +35,8 @@ function compose_email() {
 
 function load_mailbox(mailbox, sent_success = false) {
 
+  // Hide email view
+  document.querySelector("#email-view").style.display = "none";
   success_message = document.querySelector("#success_message");
   success_message.style.display = 'none';
   // Show the mailbox and hide other views
@@ -73,12 +76,22 @@ function load_mailbox(mailbox, sent_success = false) {
             mail_div = document.createElement("div");
             mail_div.dataset.id = mail.id;
             mail_div.addEventListener("click", function(){
-                show_mail(this.dataset.id)
+                show_mail(this.dataset.id, mailbox)
+            })
+            mail_div.addEventListener("mouseover", function(){
+                this.style.backgroundColor = "#bababa";
+            })
+            mail_div.addEventListener("mouseout", function(){
+                // Change mail div color based on if it was read or not
+                assign_color(this, mail.read)
             })
             mail_div.className = "email";
 
             mail_sender = document.createElement("div");
             mail_sender.className = "email_sender";
+
+            mail_timestamp = document.createElement("div");
+            mail_timestamp.className = "date";
 
             mail_subject = document.createElement("div");
             mail_subject.className = "email_subject";
@@ -99,13 +112,15 @@ function load_mailbox(mailbox, sent_success = false) {
             subject = "<strong>" + mail.subject + "</strong>";
             mail_body = "<span class='elipsed'>" + mail.body + "</span>";
 
-
+            // Assign color to mail based if it was read
+            assign_color(mail_div, mail.read)
             mail_subject.innerHTML = subject;
-            mail_sender.append(sender);
+            mail_sender.innerHTML = sender;
             mail_desc.append(mail_subject);
             mail_desc.innerHTML += mail_body;
+            mail_timestamp.innerHTML = `<span class=small_text>${mail.timestamp}</span>`;
 
-            mail_div.append(mail_sender, mail_desc);
+            mail_div.append(mail_sender, mail_desc, mail_timestamp);
 
             mail_container.append(mail_div);
         }
@@ -173,6 +188,43 @@ function send_mail() {
     });
 }
 
-function show_mail(id){
+function show_mail(id, mailbox){
     console.log("pokazuje maila")
+    // Mark email as read if it is accessed through inbox
+    if (mailbox == "inbox" || mailbox == "archive"){
+        mark_as_read(id)
+    }
+    // hide emails-view and display email-view
+    document.querySelector("#emails-view").style.display = "none";
+    email_div = document.querySelector("#email-view");
+    email_div.style.display = "block";
+    // use api to get email details
+    fetch(`emails/${id}`)
+    .then(response => response.json())
+    .then(mail => {
+        console.log(mail.subject)
+        email_div.innerHTML = `<h3>${mail.subject}</h3>`
+    })
+
+}
+
+function assign_color(div, read)
+{
+    // if mail was read we assign color of lightgray else color of white
+    if (read){
+        div.style.backgroundColor = "#e0e0e0";
+    }
+    else{
+        div.style.backgroundColor = "white";
+    }
+}
+
+
+function mark_as_read(id){
+    fetch(`/emails/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+          read: true
+      })
+    })
 }
