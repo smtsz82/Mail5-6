@@ -22,14 +22,32 @@ textarea {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 30%;
+    width: 25%;
     height: 100%;
 }
 
 .email_content_inbox{
+    flex: 1;
+    min-width: 0;
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    width: 70%;
+    width: calc(70%);
     height: 100%;
+}
+
+.email_subject{
+    padding-right: 10px;
+    width: fit-content;
+    font-weight: 400;
+    height: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.elipsed{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

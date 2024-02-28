@@ -54,7 +54,15 @@ function load_mailbox(mailbox, sent_success = false) {
   .then(emails => {
         if (emails.length == 0)
         {
-            document.querySelector('#emails-view').innerHTML += "<h4>This box is empty</h4>"
+            if (mailbox === "inbox"){
+                document.querySelector('#emails-view').innerHTML += "<h4>You have not received any mails</h4>";
+            }
+            else if (mailbox === "sent"){
+                document.querySelector('#emails-view').innerHTML += "<h4>You have not send any mails</h4>";
+            }
+            else {
+                document.querySelector('#emails-view').innerHTML += "<h4>You have not archived any mails</h4>";
+            }
             return
         }
         mail_container = document.querySelector("#emails-view");
@@ -68,20 +76,30 @@ function load_mailbox(mailbox, sent_success = false) {
             mail_sender = document.createElement("div");
             mail_sender.className = "email_sender";
 
+            mail_subject = document.createElement("div");
+            mail_subject.className = "email_subject";
+
             mail_desc = document.createElement("div");
             mail_desc.className = "email_content_inbox";
 
-            sender = get_sender(mail.sender);
-
             if (mailbox == "sent")
             {
+                sender = get_recipients(mail.recipients);
                 sender = "To:" + sender;
             }
+            else
+            {
+                sender = get_name(mail.sender);
+                sender = "From: " + sender;
+            }
+            subject = "<strong>" + mail.subject + "</strong>";
+            mail_body = "<span class='elipsed'>" + mail.body + "</span>";
 
-            description = `<strong>${mail.subject}</strong> ${mail.body}`;
 
+            mail_subject.innerHTML = subject;
             mail_sender.append(sender);
-            mail_desc.innerHTML = description;
+            mail_desc.append(mail_subject);
+            mail_desc.innerHTML += mail_body;
 
             mail_div.append(mail_sender, mail_desc);
 
@@ -90,14 +108,27 @@ function load_mailbox(mailbox, sent_success = false) {
   })
 }
 
-function get_recipients(sender_mail) {
-    sender = "";
+function get_recipients(recipients){
+    recipients_str = "";
+    for (let i = 0; i < recipients.length; i++){
+        recipient = recipients[i];
+        if (i == recipients.length - 1){
+            recipients_str += get_name(recipient);
+            return recipients_str;
+        }
+        recipients_str += get_name(recipient) + ", ";
+    }
+}
+
+function get_name(mail) {
+    // Returns name of a person from a email ex. foo@baz.com produces foo
+    name = "";
     i = 0;
-    while (sender_mail[i] != "@"){
-        sender += sender_mail[i];
+    while (mail[i] != "@"){
+        name += mail[i];
         i += 1;
     }
-    return sender
+    return name
 }
 
 function clear(id){
