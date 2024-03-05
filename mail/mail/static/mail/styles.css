@@ -67,3 +67,32 @@ textarea {
 .small_text{
     font-size: 10px;
 }
+
+#email-view{
+    display: flex;
+    flex-flow: row wrap;
+    width: 100%;
+}
+
+.email-info{
+    width: 50%;
+    height: auto;
+}
+
+.email-archv{
+    width: 50%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mail-desc{
+    width: 100%;
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.arch_button {
+    background-color: #4285F4;
+    height: 50%;
+    width: 15%;
+}
