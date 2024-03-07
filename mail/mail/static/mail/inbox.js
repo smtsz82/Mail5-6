@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function compose_email() {
+function compose_email(response=false) {
   // Hide email view
   document.querySelector("#email-view").style.display = "none";
   // Hide success message
@@ -27,9 +27,27 @@ function compose_email() {
   document.querySelector('#error-message').style.display = 'none';
 
   // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  recipient = document.querySelector('#compose-recipients');
+  subject = document.querySelector('#compose-subject');
+  body = document.querySelector('#compose-body');
+  recipient.value = "";
+  subject.value = "";
+  body.value = "";
+
+  if (response){
+        console.log(response)
+        recipient.value = response.recipient;
+        if (response.subject.slice(0, 4) != "Re: "){
+            response.subject = `Re: ${response.subject}`;
+        }
+        subject.value = response.subject;
+        body.value = response.pre_fill;
+  }
+  else{
+        recipient.value = "";
+        subject.value = "";
+        body.value = "";
+  }
 }
 
 function load_mailbox(mailbox, sent_success = false) {
@@ -74,6 +92,7 @@ function load_mailbox(mailbox, sent_success = false) {
 
             mail_div = document.createElement("div");
             mail_div.dataset.id = mail.id;
+            mail_div.dataset.read = mail.read;
             mail_div.addEventListener("click", function(){
                 show_mail(this.dataset.id, mailbox)
             })
@@ -82,7 +101,7 @@ function load_mailbox(mailbox, sent_success = false) {
             })
             mail_div.addEventListener("mouseout", function(){
                 // Change mail div color based on if it was read or not
-                assign_color(this, mail.read)
+                assign_color(this, this.dataset.read)
             })
             mail_div.className = "email";
 
@@ -108,7 +127,7 @@ function load_mailbox(mailbox, sent_success = false) {
                 sender = get_name(mail.sender);
                 sender = "From: " + sender;
             }
-            subject = "<strong>" + mail.subject + "</strong>";
+            subject = "<span class='elipsed'><strong>" + mail.subject + "</strong></span>";
             mail_body = "<span class='elipsed'>" + mail.body + "</span>";
 
             // Assign color to mail based if it was read
@@ -199,6 +218,9 @@ function send_mail() {
 }
 
 function show_mail(id, mailbox){
+    // Hide success message
+    success_message = document.querySelector("#success_message");
+    success_message.style.display = 'none';
     // Mark email as read if it is accessed through inbox
     if (mailbox == "inbox") {
         mark_as_read(id);
@@ -235,8 +257,9 @@ function show_mail(id, mailbox){
             arch_button = document.createElement("button");
             arch_button.dataset.id = id;
             arch_button.addEventListener("click", function(){
+                console.log("Hell world")
                 archive(this.dataset.id);
-                this.disabled = true;
+                load_mailbox("inbox");
             });
             arch_button.textContent = "Archive";
             arch_button.className = "btn btn-primary";
@@ -251,8 +274,9 @@ function show_mail(id, mailbox){
             unarch_button = document.createElement("button");
             unarch_button.dataset.id = id;
             unarch_button.addEventListener("click", function(){
+                console.log("Hell world")
                 un_archive(this.dataset.id);
-                this.disabled = true;
+                load_mailbox("inbox");
             });
             unarch_button.textContent = "Unarchive";
             unarch_button.className = "btn btn-primary";
@@ -260,9 +284,32 @@ function show_mail(id, mailbox){
             archive_div.append(unarch_button);
             email_description.append(archive_div);
         }
-
+        // Create reply button
+        if (mailbox == "archive" || mailbox == "inbox"){
+            reply_button = document.createElement("button");
+            reply_button.className = "btn btn-primary";
+            reply_button.dataset.id = mail.id;
+            reply_button.textContent = "Reply";
+            reply_button.addEventListener("click", function(){
+                fetch(`emails/${id}`)
+                .then(result => result.json())
+                .then(mail => {
+                    response = {
+                        subject: mail.subject,
+                        recipient: mail.sender,
+                        pre_fill: `On ${mail.timestamp} ${mail.sender} wrote: ${mail.body}`
+                    }
+                    compose_email(response);
+                })
+            })
+            email_description.append(reply_button);
+        }
+        // Create mail body
+        mail_body = document.createElement("div");
+        mail_body.className = "mail-body";
+        mail_body.innerHTML += mail.body;
         email_div.append(email_description);
-
+        email_div.append(mail_body);
 
     })
 
@@ -271,14 +318,13 @@ function show_mail(id, mailbox){
 function assign_color(div, read)
 {
     // if mail was read we assign color of lightgray else color of white
-    if (read){
+    if (read == true || read == "true"){
         div.style.backgroundColor = "#e0e0e0";
     }
     else{
         div.style.backgroundColor = "white";
     }
 }
-
 
 function mark_as_read(id){
     fetch(`/emails/${id}`, {
@@ -290,7 +336,7 @@ function mark_as_read(id){
 }
 
 function archive(id){
-    console.log("archiveing")
+    console.log("Archiving")
     fetch(`/emails/${id}`, {
       method: 'PUT',
       body: JSON.stringify({
