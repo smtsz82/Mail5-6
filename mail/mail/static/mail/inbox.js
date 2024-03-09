@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
-  document.querySelector('#compose').addEventListener('click', compose_email);
+  document.querySelector('#compose').addEventListener('click', () => compose_email(""));
   document.querySelector('#compose-form').onsubmit = function() {
         send_mail();
         return false;
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-function compose_email(response=false) {
+function compose_email(response) {
   // Hide email view
   document.querySelector("#email-view").style.display = "none";
   // Hide success message
@@ -30,10 +30,7 @@ function compose_email(response=false) {
   recipient = document.querySelector('#compose-recipients');
   subject = document.querySelector('#compose-subject');
   body = document.querySelector('#compose-body');
-  recipient.value = "";
-  subject.value = "";
-  body.value = "";
-
+  console.log(response)
   if (response){
         console.log(response)
         recipient.value = response.recipient;
